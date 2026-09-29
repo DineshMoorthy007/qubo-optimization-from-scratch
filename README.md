@@ -1,65 +1,44 @@
 # QUBO Optimization Toolkit
 
-A from-scratch implementation and study project for understanding **Quadratic Unconstrained Binary Optimization (QUBO)** through classical optimization problems.
+A from-scratch learning project for understanding **Quadratic Unconstrained Binary Optimization (QUBO)** through classical optimization problems.
 
-The project is being developed incrementally, starting from binary optimization and Max-Cut, with the eventual goal of building a reusable QUBO optimization toolkit and using it as a foundation for studying **QAOA (Quantum Approximate Optimization Algorithm)**.
+The project is developed incrementally, starting with binary optimization and Max-Cut.
 
 ## Project Goals
 
-This project focuses on understanding the concepts behind QUBO rather than relying entirely on high-level quantum computing libraries.
-
-The main goals are:
-
-* Understand binary optimization problems
-* Implement brute-force optimization
-* Formulate graph problems as QUBO
-* Understand QUBO objective functions
-* Represent QUBO problems using matrices
-* Validate mathematical formulations using Python
-* Compare different optimization approaches
-* Build a foundation for implementing QAOA
+- Understand binary optimization problems
+- Generate and evaluate binary states
+- Implement brute-force optimization
+- Formulate graph problems as QUBO
+- Represent QUBOs using matrices
+- Validate mathematical formulations with Python
+- Build a foundation for studying QAOA later
 
 ## Current Progress
 
 ### Completed
 
-* Binary state generation
-* Binary objective function evaluation
-* Brute-force search for optimal solutions
-* Basic Max-Cut formulation
-* Max-Cut edge contribution using binary variables
-* Derivation of the XOR-based Max-Cut expression
+- Binary state generation
+- Binary objective-function evaluation
+- Brute-force optimization
+- Basic Max-Cut formulation
+- XOR-based Max-Cut expression
+- Max-Cut mathematical formulation
+- Symmetric QUBO matrix representation
+- Generic NumPy QUBO evaluator
+- Exhaustive validation of all 3-bit states
 
-For an edge \((i,j)\), the cut contribution is represented as:
+### Next Steps
 
-$$
-x_i + x_j - 2x_ix_j
-$$
+- Generic QUBO brute-force solver
+- Additional QUBO problems
+- Number Partitioning
+- Knapsack
+- QUBO-to-Ising conversion
 
-The current implementation evaluates all possible binary states and calculates the corresponding Max-Cut value.
+## Current Example: Triangle Max-Cut
 
-### In Progress
-
-* QUBO matrix formulation
-* Generic QUBO evaluator
-* QUBO brute-force solver
-* Multiple graph examples
-* Visualization of optimization results
-
-### Planned
-
-* Number Partitioning as a QUBO problem
-* Knapsack formulation
-* Generic QUBO problem representation
-* QUBO benchmarking
-* QUBO → Ising conversion
-* QAOA implementation from scratch
-* Qiskit-based validation
-* Noise experiments
-
-## Current Example: Max-Cut
-
-The current implementation uses a triangle graph:
+The graph is:
 
 ```text
     0
@@ -68,122 +47,194 @@ The current implementation uses a triangle graph:
  1-----2
 ```
 
-Edges:
+Its edges are:
 
-```text
-(0, 1)
-(0, 2)
-(1, 2)
+```python
+edges = [(0, 1), (0, 2), (1, 2)]
 ```
 
-Each vertex is assigned a binary variable:
+Each vertex has a binary variable:
 
 $$
 x_i \in \{0,1\}
 $$
 
-where:
-
-```text
-0 → Group A
-1 → Group B
-```
-
-For each edge, the contribution to the cut is:
+For an edge \((i,j)\), the cut contribution is:
 
 $$
-x_i + x_j - 2x_ix_j
+x_i+x_j-2x_ix_j
 $$
 
-The total cut value is:
+Therefore, the total Max-Cut objective is:
 
 $$
 C(x)=
-\sum_{(i,j)\in E}
-(x_i+x_j-2x_ix_j)
+2x_0+2x_1+2x_2
+-2x_0x_1-2x_0x_2-2x_1x_2
 $$
 
-The implementation currently enumerates all possible binary assignments and calculates the cut value for each assignment.
+## QUBO Matrix Representation
 
-## Technology
+QUBO is written as a minimization problem, so we use the negative Max-Cut objective:
 
-* Python
-* NumPy
-* Matplotlib
+$$
+-C(x)=
+-2x_0-2x_1-2x_2
++2x_0x_1+2x_0x_2+2x_1x_2
+$$
 
-Quantum computing frameworks will be introduced later for validation and comparison rather than being used as a replacement for understanding the underlying implementation.
+This expression is represented by the symmetric matrix:
+
+$$
+Q=
+\begin{bmatrix}
+-2 & 1 & 1\\
+1 & -2 & 1\\
+1 & 1 & -2
+\end{bmatrix}
+$$
+
+The QUBO objective is:
+
+$$
+f(x)=x^TQx
+$$
+
+The diagonal entries produce the linear terms because:
+
+$$
+x_i^2=x_i
+$$
+
+for binary variables.
+
+The off-diagonal entries are `1` because symmetric matrix multiplication includes each cross term twice:
+
+$$
+Q_{01}x_0x_1+Q_{10}x_1x_0
+=
+x_0x_1+x_1x_0
+=
+2x_0x_1
+$$
+
+Thus:
+
+$$
+x^TQx=-C(x)
+$$
+
+## Phase 2 Implementation
+
+The implementation is located in:
+
+```text
+src/qubo_matrix.py
+```
+
+The QUBO evaluator calculates:
+
+```python
+x.T @ Q @ x
+```
+
+which directly corresponds to:
+
+$$
+x^TQx
+$$
+
+The program also calculates the original Max-Cut objective and verifies that:
+
+```text
+QUBO value == -Max-Cut value
+```
+
+## Validation
+
+Run the validation script from the project root:
+
+```powershell
+python src\qubo_matrix.py
+```
+
+All eight possible 3-bit states are tested:
+
+```text
+000
+001
+010
+011
+100
+101
+110
+111
+```
+
+Expected output:
+
+```text
+000 Max-Cut = 0 QUBO = 0
+001 Max-Cut = 2 QUBO = -2
+010 Max-Cut = 2 QUBO = -2
+011 Max-Cut = 2 QUBO = -2
+100 Max-Cut = 2 QUBO = -2
+101 Max-Cut = 2 QUBO = -2
+110 Max-Cut = 2 QUBO = -2
+111 Max-Cut = 0 QUBO = 0
+All states validated.
+```
 
 ## Project Structure
 
 ```text
-qubo-optimization-toolkit/
+qubo-optimization-from-scratch/
 │
-├── README.md
+├── readme.md
 ├── requirements.txt
 │
 ├── src/
 │   ├── binary_search.py
-│   └── max_cut.py
+│   ├── max_cut.py
+│   └── qubo_matrix.py
 │
 ├── experiments/
-│
 ├── results/
-│
 └── tests/
 ```
 
-The structure will evolve as additional QUBO problems and optimization methods are implemented.
+## Technology
 
-## Learning Approach
+- Python
+- NumPy
+- Matplotlib
 
-The project follows a bottom-up approach:
+High-level quantum optimization libraries are intentionally not used during the foundational implementation stages.
 
-```text
-Mathematical formulation
-        ↓
-Manual calculation
-        ↓
-Python implementation
-        ↓
-Testing
-        ↓
-QUBO formulation
-        ↓
-Matrix representation
-        ↓
-Optimization
-        ↓
-Quantum implementation
-```
-
-The core algorithms are intentionally implemented manually before introducing high-level quantum optimization libraries.
-
-## Future Direction
-
-The long-term goal is to connect classical QUBO optimization with quantum optimization:
+## Learning Progression
 
 ```text
-Optimization Problem
+Binary Optimization
         ↓
-QUBO Formulation
+Brute-Force Solver
+        ↓
+Max-Cut
+        ↓
+Mathematical Formulation
         ↓
 QUBO Matrix
         ↓
-Classical Brute Force
+Generic QUBO Evaluator
+        ↓
+Generic QUBO Solver
+        ↓
+Multiple QUBO Problems
         ↓
 Ising Formulation
         ↓
 QAOA
-        ↓
-Quantum Simulation
-        ↓
-Performance Analysis
 ```
-
-This project will serve as a foundation for further work in quantum optimization and quantum machine learning.
 
 ## Status
 
-**Work in Progress**
-
-The repository is being developed incrementally as part of a hands-on study of quantum optimization.
+**Phase 2 complete:** QUBO matrix representation and validation.
