@@ -1,44 +1,47 @@
-# QUBO Optimization Toolkit
+# QUBO Optimization From Scratch
 
-A from-scratch learning project for understanding **Quadratic Unconstrained Binary Optimization (QUBO)** through classical optimization problems.
+A hands-on learning repository for building **Quadratic Unconstrained Binary Optimization (QUBO)** intuition from first principles using Python.
 
-The project is developed incrementally, starting with binary optimization and Max-Cut.
+The current focus is on binary optimization and a complete Max-Cut-to-QUBO walkthrough on a triangle graph.
 
-## Project Goals
+## What this project covers
 
-- Understand binary optimization problems
-- Generate and evaluate binary states
-- Implement brute-force optimization
-- Formulate graph problems as QUBO
-- Represent QUBOs using matrices
-- Validate mathematical formulations with Python
-- Build a foundation for studying QAOA later
+- Binary state generation with exhaustive search
+- Objective evaluation for binary optimization
+- Max-Cut formulation with binary variables
+- QUBO matrix construction for Max-Cut
+- Numerical validation of \(x^TQx = -C(x)\)
 
-## Current Progress
+## Repository structure
 
-### Completed
+```text
+qubo-optimization-from-scratch/
+├── README.md
+├── requirements.txt
+└── src/
+    ├── binary_search.py
+    ├── max_cut.py
+    └── qubo_matrix.py
+```
 
-- Binary state generation
-- Binary objective-function evaluation
-- Brute-force optimization
-- Basic Max-Cut formulation
-- XOR-based Max-Cut expression
-- Max-Cut mathematical formulation
-- Symmetric QUBO matrix representation
-- Generic NumPy QUBO evaluator
-- Exhaustive validation of all 3-bit states
+## Quick start
 
-### Next Steps
+1. Create and activate a virtual environment (optional but recommended).
+2. Install dependencies:
 
-- Generic QUBO brute-force solver
-- Additional QUBO problems
-- Number Partitioning
-- Knapsack
-- QUBO-to-Ising conversion
+```bash
+pip install -r requirements.txt
+```
 
-## Current Example: Triangle Max-Cut
+3. Run the QUBO validation example:
 
-The graph is:
+```bash
+python src/qubo_matrix.py
+```
+
+## Current worked example: Triangle Max-Cut
+
+Graph:
 
 ```text
     0
@@ -47,194 +50,52 @@ The graph is:
  1-----2
 ```
 
-Its edges are:
+Edges:
 
 ```python
 edges = [(0, 1), (0, 2), (1, 2)]
 ```
 
-Each vertex has a binary variable:
+For binary variables \(x_i \in \{0,1\}\), each edge contributes:
 
-$$
-x_i \in \{0,1\}
-$$
+\[
+x_i + x_j - 2x_ix_j
+\]
 
-For an edge \((i,j)\), the cut contribution is:
+So the Max-Cut objective is:
 
-$$
-x_i+x_j-2x_ix_j
-$$
+\[
+C(x)=2x_0+2x_1+2x_2-2x_0x_1-2x_0x_2-2x_1x_2
+\]
 
-Therefore, the total Max-Cut objective is:
+QUBO is written as minimization, so we use \(-C(x)\) and map it to:
 
-$$
-C(x)=
-2x_0+2x_1+2x_2
--2x_0x_1-2x_0x_2-2x_1x_2
-$$
-
-## QUBO Matrix Representation
-
-QUBO is written as a minimization problem, so we use the negative Max-Cut objective:
-
-$$
--C(x)=
--2x_0-2x_1-2x_2
-+2x_0x_1+2x_0x_2+2x_1x_2
-$$
-
-This expression is represented by the symmetric matrix:
-
-$$
+\[
+f(x)=x^TQx,\quad
 Q=
 \begin{bmatrix}
 -2 & 1 & 1\\
 1 & -2 & 1\\
 1 & 1 & -2
 \end{bmatrix}
-$$
+\]
 
-The QUBO objective is:
-
-$$
-f(x)=x^TQx
-$$
-
-The diagonal entries produce the linear terms because:
-
-$$
-x_i^2=x_i
-$$
-
-for binary variables.
-
-The off-diagonal entries are `1` because symmetric matrix multiplication includes each cross term twice:
-
-$$
-Q_{01}x_0x_1+Q_{10}x_1x_0
-=
-x_0x_1+x_1x_0
-=
-2x_0x_1
-$$
-
-Thus:
-
-$$
-x^TQx=-C(x)
-$$
-
-## Phase 2 Implementation
-
-The implementation is located in:
-
-```text
-src/qubo_matrix.py
-```
-
-The QUBO evaluator calculates:
-
-```python
-x.T @ Q @ x
-```
-
-which directly corresponds to:
-
-$$
-x^TQx
-$$
-
-The program also calculates the original Max-Cut objective and verifies that:
+The validation script checks every 3-bit state and confirms:
 
 ```text
 QUBO value == -Max-Cut value
 ```
 
-## Validation
+## Learning roadmap
 
-Run the validation script from the project root:
-
-```powershell
-python src\qubo_matrix.py
-```
-
-All eight possible 3-bit states are tested:
-
-```text
-000
-001
-010
-011
-100
-101
-110
-111
-```
-
-Expected output:
-
-```text
-000 Max-Cut = 0 QUBO = 0
-001 Max-Cut = 2 QUBO = -2
-010 Max-Cut = 2 QUBO = -2
-011 Max-Cut = 2 QUBO = -2
-100 Max-Cut = 2 QUBO = -2
-101 Max-Cut = 2 QUBO = -2
-110 Max-Cut = 2 QUBO = -2
-111 Max-Cut = 0 QUBO = 0
-All states validated.
-```
-
-## Project Structure
-
-```text
-qubo-optimization-from-scratch/
-│
-├── readme.md
-├── requirements.txt
-│
-├── src/
-│   ├── binary_search.py
-│   ├── max_cut.py
-│   └── qubo_matrix.py
-│
-├── experiments/
-├── results/
-└── tests/
-```
-
-## Technology
-
-- Python
-- NumPy
-- Matplotlib
-
-High-level quantum optimization libraries are intentionally not used during the foundational implementation stages.
-
-## Learning Progression
-
-```text
-Binary Optimization
-        ↓
-Brute-Force Solver
-        ↓
-Max-Cut
-        ↓
-Mathematical Formulation
-        ↓
-QUBO Matrix
-        ↓
-Generic QUBO Evaluator
-        ↓
-Generic QUBO Solver
-        ↓
-Multiple QUBO Problems
-        ↓
-Ising Formulation
-        ↓
-QAOA
-```
+- [x] Binary optimization basics
+- [x] Max-Cut formulation
+- [x] QUBO matrix representation
+- [ ] Generic QUBO brute-force solver
+- [ ] Additional QUBO problems (e.g., Number Partitioning, Knapsack)
+- [ ] QUBO-to-Ising conversion
+- [ ] QAOA experimentation
 
 ## Status
 
-**Phase 2 complete:** QUBO matrix representation and validation.
+**Phase 2 complete:** Max-Cut QUBO matrix construction and exhaustive state validation.
